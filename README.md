@@ -24,6 +24,8 @@ docker run -d --name poke-berries -p 80:80 --rm poke-berries
 ```  
 
 
-Fastapi automatic api docs at [localhost/docs](localhost/docs)  
+Fastapi automatic api docs at [/docs](http://localhost/docs)  
   
-Growth time frequency graph at [localhost/graph](localhost/graph)
+Berries statistics at [/allBerryStats](http://localhost/allBerryStats)  
+  
+Growth time frequency graph at [/graph](http://localhost/graph)

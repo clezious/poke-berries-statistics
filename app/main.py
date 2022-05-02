@@ -49,7 +49,7 @@ if getenv("CACHE") == "TRUE":
     get_berries = lru_cache(get_berries)
 
 
-@app.get("/graph")
+@app.get("/graph", response_class=HTMLResponse)
 async def graph():
     """Returns a Histogram of the frequency of growth times of all berries in HTML"""
     stats = await get_all_berry_stats()
