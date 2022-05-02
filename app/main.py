@@ -2,11 +2,15 @@ from functools import lru_cache
 from statistics import mean, median, variance
 from collections import Counter
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 from requests import get
 from pydantic import BaseModel
 from typing import List, Dict
 from os import getenv
 from dotenv import load_dotenv
+import matplotlib.pyplot as plt
+import base64
+from io import BytesIO
 
 # load env vars
 load_dotenv()
@@ -43,6 +47,40 @@ def get_berries(berries_url: str) -> dict:
 if getenv("CACHE") == "TRUE":
     get_berry_growth_time = lru_cache(get_berry_growth_time)
     get_berries = lru_cache(get_berries)
+
+
+@app.get("/graph")
+async def graph():
+    """Returns a Histogram of the frequency of growth times of all berries in HTML"""
+    stats = await get_all_berry_stats()
+    berries_growth_times = [
+        int(key)
+        for key, val in stats.get("frequency_growth_time").items()
+        for x in range(val)
+    ]
+    # Generate histogram of growth time frequencies
+    fig = plt.figure()
+    plt.xlabel("Growth Time (s)")
+    plt.ylabel("Frequency")
+    plt.hist(berries_growth_times, bins=max(stats.get("frequency_growth_time").keys()))
+
+    # Save plot into base64 encoded img
+    tmpfile = BytesIO()
+    fig.savefig(tmpfile, format="png")
+    encoded = base64.b64encode(tmpfile.getvalue()).decode("utf-8")
+
+    html_content = f"""
+        <html>
+            <head>
+                <title>Growth time frequency histogram</title>
+            </head>
+            <body>
+                <h1>Growth time frequency histogram</h1>
+                <img src=\'data:image/png;base64,{encoded}\'>
+            </body>
+        </html>
+    """
+    return HTMLResponse(content=html_content, status_code=200)
 
 
 @app.get("/allBerryStats", response_model=AllBerryStatsResponse)
