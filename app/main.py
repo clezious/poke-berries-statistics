@@ -26,15 +26,20 @@ class AllBerryStatsResponse(BaseModel):
 
 
 def get_berry_growth_time(berry_info_url: str) -> int:
+    """Performs a GET Request to the received berry_info_url and returns the growth_time of the response body"""
     berry_info = get(berry_info_url).json()
     return berry_info.get("growth_time")
 
 
 def get_berries(berries_url: str) -> dict:
+    """Performs a GET Request to the received berries_url and returns the response body parsed as a dict"""
     berries_response = get(berries_url).json()
     return berries_response
 
 
+# If specified by environment variable "CACHE", performs simple caching using functools.lru_cache
+# This allows subsequent api calls to be faster, at the expense of increased memory usage and
+# (since no cache invalidation techniques are implemented) not being able to see future data updates.
 if getenv("CACHE") == "TRUE":
     get_berry_growth_time = lru_cache(get_berry_growth_time)
     get_berries = lru_cache(get_berries)
@@ -42,6 +47,7 @@ if getenv("CACHE") == "TRUE":
 
 @app.get("/allBerryStats", response_model=AllBerryStatsResponse)
 async def get_all_berry_stats():
+    """To get a series of statistics on Poke-Berries"""
     berries_names = []
     berries_growth_times = []
     berries_url = getenv("BERRIES_URL")
